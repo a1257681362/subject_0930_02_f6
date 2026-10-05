@@ -12,6 +12,7 @@ import com.evops.aqua.entity.TransferRecord;
 import com.evops.aqua.mapper.HarvestRecordMapper;
 import com.evops.aqua.mapper.SeedlingBatchMapper;
 import com.evops.aqua.mapper.TransferRecordMapper;
+import com.evops.aqua.med.service.MedWithdrawalGuard;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import java.util.List;
  * 投苗批次（原始投苗单）。
  * 注意：不提供任何删除方法——原始投苗单不可删除。
  * 隔离守卫：隔离中的批次禁止换池（混养）与出池；隔离池在隔离期间禁止投苗混养。
+ * 休药期守卫：用药后预计出池日被最晚休药结束日锁定，休药期未满禁止出池。
  */
 @Service
 public class SeedlingBatchService {
@@ -31,17 +33,20 @@ public class SeedlingBatchService {
     private final TransferRecordMapper transferRecordMapper;
     private final HarvestRecordMapper harvestRecordMapper;
     private final IsolationGuard isolationGuard;
+    private final MedWithdrawalGuard withdrawalGuard;
 
     public SeedlingBatchService(SeedlingBatchMapper batchMapper,
                                 PondService pondService,
                                 TransferRecordMapper transferRecordMapper,
                                 HarvestRecordMapper harvestRecordMapper,
-                                IsolationGuard isolationGuard) {
+                                IsolationGuard isolationGuard,
+                                MedWithdrawalGuard withdrawalGuard) {
         this.batchMapper = batchMapper;
         this.pondService = pondService;
         this.transferRecordMapper = transferRecordMapper;
         this.harvestRecordMapper = harvestRecordMapper;
         this.isolationGuard = isolationGuard;
+        this.withdrawalGuard = withdrawalGuard;
     }
 
     /**
@@ -95,12 +100,14 @@ public class SeedlingBatchService {
 
     /**
      * 出池：生成出池记录，批次状态置为已出池，台账封存。
+     * 休药期守卫：用药后预计出池日被最晚休药结束日锁定，休药期未满禁止出池。
      */
     @Transactional(rollbackFor = Exception.class)
     public HarvestRecord harvest(Long batchId, HarvestRequest request) {
         SeedlingBatch batch = getOrThrow(batchId);
         requireStocked(batch, "出池");
         isolationGuard.requireBatchNotIsolated(batchId, "出池");
+        withdrawalGuard.requireHarvestAfterWithdrawal(batchId, request.getHarvestDate(), null);
         HarvestRecord record = new HarvestRecord();
         record.setBatchId(batch.getId());
         record.setPondId(batch.getPondId());
