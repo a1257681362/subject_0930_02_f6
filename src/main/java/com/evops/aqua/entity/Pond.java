@@ -18,6 +18,7 @@ public class Pond extends BaseEntity {
     private String pondName;
     private String seaArea;
     private BigDecimal waterDepthM;
+    private BigDecimal waterAreaM2;
     private BigDecimal salinityPpt;
     private String status;
     private String remark;
@@ -30,6 +31,8 @@ public class Pond extends BaseEntity {
     public void setSeaArea(String seaArea) { this.seaArea = seaArea; }
     public BigDecimal getWaterDepthM() { return waterDepthM; }
     public void setWaterDepthM(BigDecimal waterDepthM) { this.waterDepthM = waterDepthM; }
+    public BigDecimal getWaterAreaM2() { return waterAreaM2; }
+    public void setWaterAreaM2(BigDecimal waterAreaM2) { this.waterAreaM2 = waterAreaM2; }
     public BigDecimal getSalinityPpt() { return salinityPpt; }
     public void setSalinityPpt(BigDecimal salinityPpt) { this.salinityPpt = salinityPpt; }
     public String getStatus() { return status; }

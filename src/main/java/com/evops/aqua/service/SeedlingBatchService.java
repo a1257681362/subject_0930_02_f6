@@ -12,6 +12,7 @@ import com.evops.aqua.entity.TransferRecord;
 import com.evops.aqua.mapper.HarvestRecordMapper;
 import com.evops.aqua.mapper.SeedlingBatchMapper;
 import com.evops.aqua.mapper.TransferRecordMapper;
+import com.evops.aqua.med.service.MedWithdrawalGuard;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +32,20 @@ public class SeedlingBatchService {
     private final TransferRecordMapper transferRecordMapper;
     private final HarvestRecordMapper harvestRecordMapper;
     private final IsolationGuard isolationGuard;
+    private final MedWithdrawalGuard medWithdrawalGuard;
 
     public SeedlingBatchService(SeedlingBatchMapper batchMapper,
                                 PondService pondService,
                                 TransferRecordMapper transferRecordMapper,
                                 HarvestRecordMapper harvestRecordMapper,
-                                IsolationGuard isolationGuard) {
+                                IsolationGuard isolationGuard,
+                                MedWithdrawalGuard medWithdrawalGuard) {
         this.batchMapper = batchMapper;
         this.pondService = pondService;
         this.transferRecordMapper = transferRecordMapper;
         this.harvestRecordMapper = harvestRecordMapper;
         this.isolationGuard = isolationGuard;
+        this.medWithdrawalGuard = medWithdrawalGuard;
     }
 
     /**
@@ -101,6 +105,7 @@ public class SeedlingBatchService {
         SeedlingBatch batch = getOrThrow(batchId);
         requireStocked(batch, "出池");
         isolationGuard.requireBatchNotIsolated(batchId, "出池");
+        medWithdrawalGuard.requireHarvestAllowed(batch.getPondId(), request.getHarvestDate());
         HarvestRecord record = new HarvestRecord();
         record.setBatchId(batch.getId());
         record.setPondId(batch.getPondId());

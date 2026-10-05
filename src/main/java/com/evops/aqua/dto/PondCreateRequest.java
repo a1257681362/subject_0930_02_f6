@@ -28,6 +28,9 @@ public class PondCreateRequest {
     @DecimalMin(value = "0.1", message = "水深必须大于0")
     private BigDecimal waterDepthM;
 
+    @DecimalMin(value = "0.1", message = "水面面积必须大于0")
+    private BigDecimal waterAreaM2;
+
     @NotNull(message = "盐度不能为空")
     @DecimalMin(value = "0", message = "盐度不能为负")
     @DecimalMax(value = "50", message = "盐度不能超过50‰")
@@ -43,6 +46,8 @@ public class PondCreateRequest {
     public void setSeaArea(String seaArea) { this.seaArea = seaArea; }
     public BigDecimal getWaterDepthM() { return waterDepthM; }
     public void setWaterDepthM(BigDecimal waterDepthM) { this.waterDepthM = waterDepthM; }
+    public BigDecimal getWaterAreaM2() { return waterAreaM2; }
+    public void setWaterAreaM2(BigDecimal waterAreaM2) { this.waterAreaM2 = waterAreaM2; }
     public BigDecimal getSalinityPpt() { return salinityPpt; }
     public void setSalinityPpt(BigDecimal salinityPpt) { this.salinityPpt = salinityPpt; }
     public String getRemark() { return remark; }
